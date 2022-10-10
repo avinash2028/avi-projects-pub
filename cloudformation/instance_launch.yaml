@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Launch EC2 instance in vpc and subnet which already setup"
+Parameters:
+  VPCID:
+    Type: AWS::EC2::VPC::Id
+  SubnetID:
+    Type: AWS::EC2::Subnet::Id
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+  AZ:
+    Type: AWS::EC2::AvailabilityZone::Name
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0010d386b82bc06f0
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPair
+      SecurityGroupIds: 
+        - !GetAtt SecuritySSH.GroupId
+        - !GetAtt ServerAccess.GroupId
+      SubnetId: !Ref SubnetID
+      UserData:
+        !Base64 |
+        #!/bin/bash
+        apt-get install nginx
+
+  SecuritySSH:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: All ssh port
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 22
+        IpProtocol: tcp
+        ToPort: 22
+      VpcId: !Ref VPCID
+
+  ServerAccess:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow 80 port
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 80
+        IpProtocol: tcp
+        ToPort: 80
+      VpcId: !Ref VPCID
+
+
+
+
+
+
+
+
+  
